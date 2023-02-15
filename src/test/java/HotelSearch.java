@@ -1,6 +1,7 @@
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.annotations.Test;
 
@@ -19,8 +20,21 @@ public class HotelSearch {
         driver.findElement(By.xpath("//span[text()= 'Search by Hotel or City Name']")).click();
         driver.findElement(By.xpath("//div[@id='select2-drop']//input")).sendKeys("Dubai");
         driver.findElement(By.xpath("//span[@class='select2-match' and text()='Dubai']")).click();
-        driver.findElement(By.name("checkin")).sendKeys("17/04/2021");
-        driver.findElement(By.name("checkout")).sendKeys("20/04/2021");
+
+        driver.findElement(By.name("checkin")).click();
+        driver.findElements(By.xpath("//td[@class='day ' and text()='17']"))
+            .stream()
+                .filter(el -> el.isDisplayed())
+                        .findFirst()
+                                .ifPresent(el -> el.click());
+
+        driver.findElements(By.xpath("//td[@class='day ' and text()='25']"))
+        .stream()
+                .filter(el -> el.isDisplayed())
+                .findFirst()
+                .ifPresent(el -> el.click());
+
+
 
     }
 }
