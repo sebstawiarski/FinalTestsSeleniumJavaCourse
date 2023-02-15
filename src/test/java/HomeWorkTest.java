@@ -4,7 +4,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.Assert;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +17,7 @@ import java.util.stream.Collectors;
 public class HomeWorkTest {
 
     @Test
-    public void searchHotel() {
+    public void searchHotelWithoutCityName() {
 
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
@@ -46,5 +48,76 @@ public class HomeWorkTest {
 
         Assert.assertTrue(noResultFound.isDisplayed());
         Assert.assertEquals(noResultFound.getText(), "No Results Found");
+    }
+
+
+    //blank registration and do the assertion
+    @Test
+    public void signUpWithoutInfo() {
+
+        WebDriverManager.chromedriver().setup();
+        WebDriver driver = new ChromeDriver();
+        driver.manage().timeouts().implicitlyWait(10L, TimeUnit.SECONDS);
+        driver.manage().window().maximize();
+        driver.get("http://www.kurs-selenium.pl/demo/");
+
+        driver.findElements(By.xpath("//li[@id='li_myaccount']"))
+                .stream()
+                .filter(WebElement::isDisplayed)
+                .findFirst()
+                .ifPresent(WebElement::click);
+
+        driver.findElements(By.xpath("//a[text()='  Sign Up']")).get(1).click();
+        driver.findElement(By.xpath("//button[text()=' Sign Up']")).click();
+
+        List<String> reqInfo = driver.findElements(By.xpath("//div[contains(@class,'alert alert-danger')]//p"))
+                .stream()
+                .map(WebElement::getText)
+                .collect(Collectors.toList());
+
+        reqInfo.forEach(System.out::println);
+
+        SoftAssert softAssert = new SoftAssert();
+
+        softAssert.assertTrue(reqInfo.contains("The Email field is required."));
+        softAssert.assertTrue(reqInfo.contains("The Password field is required."));
+        softAssert.assertTrue(reqInfo.contains("The Password field is required."));
+        softAssert.assertTrue(reqInfo.contains("The First name field is required."));
+        softAssert.assertTrue(reqInfo.contains("The Last Name field is required."));
+
+    }
+
+
+    //create account with wrong email
+    @Test
+    public void invalidEmail() {
+
+        WebDriverManager.chromedriver().setup();
+        WebDriver driver = new ChromeDriver();
+        driver.manage().timeouts().implicitlyWait(10L, TimeUnit.SECONDS);
+        driver.manage().window().maximize();
+        driver.get("http://www.kurs-selenium.pl/demo/");
+
+        driver.findElements(By.xpath("//li[@id='li_myaccount']"))
+                .stream()
+                .filter(WebElement::isDisplayed)
+                .findFirst()
+                .ifPresent(WebElement::click);
+
+        driver.findElements(By.xpath("//a[text()='  Sign Up']")).get(1).click();
+
+
+        driver.findElement(By.name("firstname")).sendKeys("Sebastian");
+        driver.findElement(By.name("lastname")).sendKeys("Stawiarski");
+        driver.findElement(By.name("phone")).sendKeys("+48 333 444 555");
+        driver.findElement(By.name("email")).sendKeys("tester.pl");
+        driver.findElement(By.name("password")).sendKeys("Qwerty1!");
+        driver.findElement(By.name("confirmpassword")).sendKeys("Qwerty1!");
+        driver.findElement(By.xpath("//button[text()=' Sign Up']")).click();
+
+        String invalidEmail = driver.findElement(By.xpath("//div[contains(@class,'alert alert-danger')]//p")).getText();
+
+        Assert.assertTrue(invalidEmail.contains("The Email field must contain a valid email address."));
+
     }
 }
