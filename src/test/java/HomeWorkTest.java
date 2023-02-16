@@ -1,30 +1,19 @@
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.Assert;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
+import pl.seleniumdemo.tests.BaseTest;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 //hotel search without city name, and do the assertion for no reasults found
 
-public class HomeWorkTest {
+public class HomeWorkTest extends BaseTest {
 
     @Test
-    public void searchHotelWithoutCityName() {
-
-        WebDriverManager.chromedriver().setup();
-        WebDriver driver = new ChromeDriver();
-        driver.manage().timeouts().implicitlyWait(10L, TimeUnit.SECONDS);
-        driver.manage().window().maximize();
-        driver.get("http://www.kurs-selenium.pl/demo/");
-
+    public void searchHotelWithoutCityNameTest() {
 
         driver.findElement(By.name("checkin")).click();
         driver.findElements(By.xpath("//td[@class='day ' and text()='17']"))
@@ -50,16 +39,9 @@ public class HomeWorkTest {
         Assert.assertEquals(noResultFound.getText(), "No Results Found");
     }
 
-
     //blank registration and do the assertion
     @Test
-    public void signUpWithoutInfo() {
-
-        WebDriverManager.chromedriver().setup();
-        WebDriver driver = new ChromeDriver();
-        driver.manage().timeouts().implicitlyWait(10L, TimeUnit.SECONDS);
-        driver.manage().window().maximize();
-        driver.get("http://www.kurs-selenium.pl/demo/");
+    public void signUpWithoutInfoTest() {
 
         driver.findElements(By.xpath("//li[@id='li_myaccount']"))
                 .stream()
@@ -84,19 +66,11 @@ public class HomeWorkTest {
         softAssert.assertTrue(reqInfo.contains("The Password field is required."));
         softAssert.assertTrue(reqInfo.contains("The First name field is required."));
         softAssert.assertTrue(reqInfo.contains("The Last Name field is required."));
-
     }
-
 
     //create account with wrong email
     @Test
-    public void invalidEmail() {
-
-        WebDriverManager.chromedriver().setup();
-        WebDriver driver = new ChromeDriver();
-        driver.manage().timeouts().implicitlyWait(10L, TimeUnit.SECONDS);
-        driver.manage().window().maximize();
-        driver.get("http://www.kurs-selenium.pl/demo/");
+    public void invalidEmailTest() {
 
         driver.findElements(By.xpath("//li[@id='li_myaccount']"))
                 .stream()
@@ -118,6 +92,5 @@ public class HomeWorkTest {
         String invalidEmail = driver.findElement(By.xpath("//div[contains(@class,'alert alert-danger')]//p")).getText();
 
         Assert.assertTrue(invalidEmail.contains("The Email field must contain a valid email address."));
-
     }
 }
