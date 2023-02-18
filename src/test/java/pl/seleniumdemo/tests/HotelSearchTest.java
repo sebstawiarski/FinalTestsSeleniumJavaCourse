@@ -1,103 +1,101 @@
 package pl.seleniumdemo.tests;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.asserts.SoftAssert;
 import pl.seleniumdemo.pages.HotelSearchPage;
 import pl.seleniumdemo.pages.ResultsPage;
+import pl.seleniumdemo.utils.ExcelReader;
+import pl.seleniumdemo.utils.SeleniumHelper;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class HotelSearchTest extends BaseTest {
 
     @Test
-    public void hotelSearchHotelTest() {
+    public void hotelSearchHotelTest() throws IOException {
+
+        ExtentTest test = extentReports.createTest("Search Hotel Test");
 
         HotelSearchPage hotelSearchPage = new HotelSearchPage(driver);
         hotelSearchPage.setCity("Dubai");
+        test.log(Status.PASS, "Setting city done", SeleniumHelper.getScreenshot(driver));
         hotelSearchPage.setDates("20/02/2023", "23/02/2023");
-        hotelSearchPage.setTravellers(1,2);
+        test.log(Status.PASS, "Setting dates done", SeleniumHelper.getScreenshot(driver));
+        hotelSearchPage.setTravellers(1, 2);
+        test.log(Status.PASS, "Setting travellers done", SeleniumHelper.getScreenshot(driver));
         hotelSearchPage.performSearch();
+        test.log(Status.PASS, "Performing search done");
+        test.log(Status.PASS, "Screenshot", SeleniumHelper.getScreenshot(driver));
 
         ResultsPage resultsPage = new ResultsPage(driver);
 
         List<String> hotelNames = resultsPage.getHotelNames();
 
-        Assert.assertEquals("Jumeirah Beach Hotel",hotelNames.get(0));
-        Assert.assertEquals("Oasis Beach Tower",hotelNames.get(1));
-        Assert.assertEquals("Rose Rayhaan Rotana",hotelNames.get(2));
-        Assert.assertEquals("Hyatt Regency Perth",hotelNames.get(3));
+        Assert.assertEquals("Jumeirah Beach Hotel", hotelNames.get(0));
+        Assert.assertEquals("Oasis Beach Tower", hotelNames.get(1));
+        Assert.assertEquals("Rose Rayhaan Rotana", hotelNames.get(2));
+        Assert.assertEquals("Hyatt Regency Perth", hotelNames.get(3));
+
+        test.log(Status.PASS, "Assertions passed", SeleniumHelper.getScreenshot(driver));
     }
-    @Test
-    public void searchHotelWithoutCityNameTest() {
+
+    @Test(dataProvider = "data")
+    public void hotelSearchHotelWithExcelReaderTest(String city, String hotel) throws IOException {
+
+        ExtentTest test = extentReports.createTest("Search Hotel Test With Data Provider for "+city);
 
         HotelSearchPage hotelSearchPage = new HotelSearchPage(driver);
+        hotelSearchPage.setCity(city);
+        test.log(Status.PASS, "Setting city done", SeleniumHelper.getScreenshot(driver));
         hotelSearchPage.setDates("20/02/2023", "23/02/2023");
-        hotelSearchPage.setTravellers(0,2);
+        test.log(Status.PASS, "Setting dates done", SeleniumHelper.getScreenshot(driver));
+        hotelSearchPage.setTravellers(1, 2);
+        test.log(Status.PASS, "Setting travellers done", SeleniumHelper.getScreenshot(driver));
         hotelSearchPage.performSearch();
+        test.log(Status.PASS, "Performing search done");
+
+        ResultsPage resultsPage = new ResultsPage(driver);
+
+        List<String> hotelNames = resultsPage.getHotelNames();
+
+        Assert.assertEquals(hotel, hotelNames.get(0));
+        test.log(Status.PASS, "Assertions passed", SeleniumHelper.getScreenshot(driver));
+    }
+
+
+
+    @Test
+    public void searchHotelWithoutCityNameTest() throws IOException {
+
+        ExtentTest test = extentReports.createTest("Search Hotel Test Without Names");
+
+        HotelSearchPage hotelSearchPage = new HotelSearchPage(driver);
+        test.log(Status.PASS, "Searching Hotel Name Without City", SeleniumHelper.getScreenshot(driver));
+        hotelSearchPage.setDates("20/02/2023", "23/02/2023");
+        test.log(Status.PASS, "Setting dates done", SeleniumHelper.getScreenshot(driver));
+        hotelSearchPage.setTravellers(0, 2);
+        test.log(Status.PASS, "Setting travellers done", SeleniumHelper.getScreenshot(driver));
+        hotelSearchPage.performSearch();
+        test.log(Status.PASS, "Performing search done");
 
         ResultsPage resultsPage = new ResultsPage(driver);
 
         Assert.assertTrue(resultsPage.resultHeading.isDisplayed());
         Assert.assertEquals(resultsPage.getHeadingText(), "No Results Found");
+        test.log(Status.PASS, "Assertions with error requirement informations passed", SeleniumHelper.getScreenshot(driver));
+
     }
 
-    //blank registration and do the assertion
-    @Test
-    public void signUpWithoutInfoTest() {
+    @DataProvider
+    public Object[][] data() throws IOException {
+        return ExcelReader.readExcel("testData.xlsx");
 
-        driver.findElements(By.xpath("//li[@id='li_myaccount']"))
-                .stream()
-                .filter(WebElement::isDisplayed)
-                .findFirst()
-                .ifPresent(WebElement::click);
 
-        driver.findElements(By.xpath("//a[text()='  Sign Up']")).get(1).click();
-        driver.findElement(By.xpath("//button[text()=' Sign Up']")).click();
-
-        List<String> reqInfo = driver.findElements(By.xpath("//div[contains(@class,'alert alert-danger')]//p"))
-                .stream()
-                .map(WebElement::getText)
-                .collect(Collectors.toList());
-
-        reqInfo.forEach(System.out::println);
-
-        SoftAssert softAssert = new SoftAssert();
-
-        softAssert.assertTrue(reqInfo.contains("The Email field is required."));
-        softAssert.assertTrue(reqInfo.contains("The Password field is required."));
-        softAssert.assertTrue(reqInfo.contains("The Password field is required."));
-        softAssert.assertTrue(reqInfo.contains("The First name field is required."));
-        softAssert.assertTrue(reqInfo.contains("The Last Name field is required."));
     }
 
-    //create account with wrong email
-    @Test
-    public void invalidEmailTest() {
-
-        driver.findElements(By.xpath("//li[@id='li_myaccount']"))
-                .stream()
-                .filter(WebElement::isDisplayed)
-                .findFirst()
-                .ifPresent(WebElement::click);
-
-        driver.findElements(By.xpath("//a[text()='  Sign Up']")).get(1).click();
-
-
-        driver.findElement(By.name("firstname")).sendKeys("Sebastian");
-        driver.findElement(By.name("lastname")).sendKeys("Stawiarski");
-        driver.findElement(By.name("phone")).sendKeys("+48 333 444 555");
-        driver.findElement(By.name("email")).sendKeys("tester.pl");
-        driver.findElement(By.name("password")).sendKeys("Qwerty1!");
-        driver.findElement(By.name("confirmpassword")).sendKeys("Qwerty1!");
-        driver.findElement(By.xpath("//button[text()=' Sign Up']")).click();
-
-        String invalidEmail = driver.findElement(By.xpath("//div[contains(@class,'alert alert-danger')]//p")).getText();
-
-        Assert.assertTrue(invalidEmail.contains("The Email field must contain a valid email address."));
-    }
 }
